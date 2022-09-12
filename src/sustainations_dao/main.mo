@@ -1760,7 +1760,7 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
     stages : [Types.MemoryCardEnginePatternItemStages], 
     cards : [Types.MemoryCardEnginePatternItemCards]
   ) : async Response<()>{
-    // if(isAdmin(caller)) {
+    if(isAdmin(caller)) {
       for (V in Iter.fromArray(games)) {
         switch (state.memoryCardEngine.games.get(V.gameId)) {
           case null {
@@ -1803,15 +1803,15 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
         };
       };
       #ok();
-    // } else {
-    //   #err(#AdminRoleRequired);
-    // }
+    } else {
+      #err(#AdminRoleRequired);
+    }
   };
 
   public shared({caller}) func memoryCardEngineAllGames() : async Response<[(Text, Types.MemoryCardEngineGame)]>{
-    // if(Principal.toText(caller) == "2vxsx-fae") {
-    //   return #err(#NotAuthorized);// isNotAuthorized
-    // };
+    if(Principal.toText(caller) == "2vxsx-fae") {
+      return #err(#NotAuthorized);// isNotAuthorized
+    };
     if(isAdmin(caller)) {
       #ok(Iter.toArray(state.memoryCardEngine.games.entries()));
     } else {
@@ -1820,9 +1820,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public shared({caller}) func memoryCardEngineGameChangeStatus(gameId : Text, newStatus : Bool) : async Response<()> {
-    // if(Principal.toText(caller) == "2vxsx-fae") {
-    //   return #err(#NotAuthorized);// isNotAuthorized
-    // };
+    if(Principal.toText(caller) == "2vxsx-fae") {
+      return #err(#NotAuthorized);// isNotAuthorized
+    };
     if(isAdmin(caller)) {
       switch (state.memoryCardEngine.games.get(gameId)) {
         case null #err(#NotFound);
@@ -1844,9 +1844,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public shared({caller}) func memoryCardEngineStageDelete(stageId : Text) : async Response<()> {
-    // if(Principal.toText(caller) == "2vxsx-fae") {
-    //   return #err(#NotAuthorized);// isNotAuthorized
-    // };
+    if(Principal.toText(caller) == "2vxsx-fae") {
+      return #err(#NotAuthorized);// isNotAuthorized
+    };
     if(isAdmin(caller)) {
       state.memoryCardEngine.stages.delete(stageId);
       for ((K, V) in state.memoryCardEngine.cards.entries()) {
@@ -1861,9 +1861,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public shared({caller}) func memoryCardEngineAllStages() : async Response<[(Text, Types.MemoryCardEngineStage)]>{
-    // if(Principal.toText(caller) == "2vxsx-fae") {
-    //   return #err(#NotAuthorized);// isNotAuthorized
-    // };
+    if(Principal.toText(caller) == "2vxsx-fae") {
+      return #err(#NotAuthorized);// isNotAuthorized
+    };
     if(isAdmin(caller)) {
       #ok(Iter.toArray(state.memoryCardEngine.stages.entries()));
     } else {
@@ -1872,9 +1872,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public shared({caller}) func memoryCardEngineAllCards() : async Response<[(Text, Types.MemoryCardEngineCard)]>{
-    // if(Principal.toText(caller) == "2vxsx-fae") {
-    //   return #err(#NotAuthorized);// isNotAuthorized
-    // };
+    if(Principal.toText(caller) == "2vxsx-fae") {
+      return #err(#NotAuthorized);// isNotAuthorized
+    };
     if(isAdmin(caller)) {
       #ok(Iter.toArray(state.memoryCardEngine.cards.entries()));
     } else {
@@ -1884,9 +1884,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
 
   /* Client query data memoryCardEngine */
   public query({caller}) func memoryCardEngineSlugEnabled() : async Response<[(Text, Types.MemoryCardEngineGame)]> {
-    // if (Principal.toText(caller) == "2vxsx-fae") {
-    //   throw Error.reject("NotAuthorized");  //isNotAuthorized
-    // };
+    if (Principal.toText(caller) == "2vxsx-fae") {
+      throw Error.reject("NotAuthorized");  //isNotAuthorized
+    };
     var result : [(Text, Types.MemoryCardEngineGame)] = [];
     let games = state.memoryCardEngine.games.entries();
     for ((K, V) in state.memoryCardEngine.games.entries()) {
@@ -1898,9 +1898,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public query({caller}) func memoryCardEngineStages(gameId : Text) : async Response<[?(Text, Types.MemoryCardEngineStage)]> {
-    // if (Principal.toText(caller) == "2vxsx-fae") {
-    //   throw Error.reject("NotAuthorized");  //isNotAuthorized
-    // };
+    if (Principal.toText(caller) == "2vxsx-fae") {
+      throw Error.reject("NotAuthorized");  //isNotAuthorized
+    };
     var stages : [?(Text, Types.MemoryCardEngineStage)] = [];
     for ((K, V) in state.memoryCardEngine.stages.entries()) {
       if (V.gameId == gameId) {
@@ -1913,9 +1913,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
 
 
   public query({caller}) func memoryCardEngineCards(stageId : Text) : async Response<[?(Text, Types.MemoryCardEngineCard)]> {
-    // if (Principal.toText(caller) == "2vxsx-fae") {
-    //   throw Error.reject("NotAuthorized");  //isNotAuthorized
-    // };
+    if (Principal.toText(caller) == "2vxsx-fae") {
+      throw Error.reject("NotAuthorized");  //isNotAuthorized
+    };
     var cards : [?(Text, Types.MemoryCardEngineCard)] = [];
     for ((K, V) in state.memoryCardEngine.cards.entries()) {
       if (V.stageId == stageId) {
@@ -1926,9 +1926,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public query func memoryCardEngineGetPlayer(caller : Principal, gameId : Text, gameSlug : Text) : async Response<(Text, Types.MemoryCardEnginePlayer)> {
-    // if (Principal.toText(caller) == "2vxsx-fae") {
-    //   throw Error.reject("NotAuthorized");  //isNotAuthorized
-    // };
+    if (Principal.toText(caller) == "2vxsx-fae") {
+      throw Error.reject("NotAuthorized");  //isNotAuthorized
+    };
     let accountId = Account.toText(Account.accountIdentifier(Principal.fromActor(this), Account.principalToSubaccount(caller)));
     var player : ?(Text, Types.MemoryCardEnginePlayer) = null;
     let players = state.memoryCardEngine.players.entries();
@@ -1963,9 +1963,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
     playerId : ?Text;
     gameSlug : Text;
   }) : async Response<()> {
-    // if (Principal.toText(caller) == "2vxsx-fae") {
-    //   throw Error.reject("NotAuthorized");  //isNotAuthorized
-    // };
+    if (Principal.toText(caller) == "2vxsx-fae") {
+      throw Error.reject("NotAuthorized");  //isNotAuthorized
+    };
     var stagesSize : Nat = 0;
     for (V in state.memoryCardEngine.stages.vals()){
       if (V.gameId == gameId) stagesSize += 1;
@@ -2125,12 +2125,7 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
           };
           case (#ok(K, oldData)) {
             let found = 
-              Array.find<{
-                stageId : Text;
-                selected : [?(Types.MemoryCardEngineCard, Types.MemoryCardEngineCard)];
-                turn : Nat;
-                timing : Float;
-              }>(oldData.history, func (h) : Bool {
+              Array.find<Types.MemoryCardEngineGameProgress>(oldData.history, func (h) : Bool {
               Text.equal(stageId, h.stageId);
             });
             switch (found) {
@@ -2241,10 +2236,60 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
     };
   };
 
+  public shared({caller}) func memoryCardEngineCompletedStage(selected : [?(Types.MemoryCardEngineCard, Types.MemoryCardEngineCard)], stageId : Text, playerId : Text) : async Response<()> {
+    if (Principal.toText(caller) == "2vxsx-fae") {
+      throw Error.reject("NotAuthorized");  //isNotAuthorized
+    };
+
+    switch (state.memoryCardEngine.players.get(playerId)) {
+      case null { return #err(#NotFound); };
+      case (?player) {
+        let found = 
+          Array.find<Types.MemoryCardEngineGameProgress>(player.history, func (h) : Bool {
+          Text.equal(stageId, h.stageId);
+        });
+
+        switch (found) {
+          case null {
+            return #err(#NotFound);
+          };
+          case (?V) {
+            var newHistory : [Types.MemoryCardEngineGameProgress] = [];
+
+            for (value in player.history.vals()) {
+              if (value.stageId == stageId and value.selected == selected) {
+                let newValue : Types.MemoryCardEngineGameProgress = {
+                  stageId = value.stageId;
+                  selected = value.selected;
+                  turn = value.selected.size();
+                  timing = Float.fromInt(player.updatedAt - player.createdAt);
+                };
+                newHistory := Array.append<Types.MemoryCardEngineGameProgress>(newHistory, [newValue]);
+              } else {
+                newHistory := Array.append<Types.MemoryCardEngineGameProgress>(newHistory, [value]);
+              };
+            };
+            
+            let replacePlayer : Types.MemoryCardEnginePlayer = {
+              aId = player.aId;
+              gameId = player.gameId;
+              gameSlug = player.gameSlug;
+              history = newHistory;
+              createdAt = player.createdAt;
+              updatedAt = Moment.now();
+            };
+            let _ = state.memoryCardEngine.players.replace(playerId, replacePlayer);
+            return #ok(());
+          };
+        };
+      };
+    };
+  };
+
   public query({caller}) func memoryCardEngineListOfDay(gameId : Text, gameSlug : Text) : async Response<[?Types.MemoryCardEnginePlayer]>{
-    // if (Principal.toText(caller) == "2vxsx-fae") {
-    //   throw Error.reject("NotAuthorized");  //isNotAuthorized
-    // };
+    if (Principal.toText(caller) == "2vxsx-fae") {
+      throw Error.reject("NotAuthorized");  //isNotAuthorized
+    };
     var listTop : [?Types.MemoryCardEnginePlayer] = [];
     var stagesSize : Int = 0;
     for (V in state.memoryCardEngine.stages.vals()){
@@ -2264,9 +2309,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public query({caller}) func memoryCardEngineListOfYesterday(gameId : Text, gameSlug : Text) : async Response<[?(Text, Types.MemoryCardEnginePlayer)]>{
-    // if (Principal.toText(caller) == "2vxsx-fae") {
-    //   throw Error.reject("NotAuthorized");  //isNotAuthorized
-    // };
+    if (Principal.toText(caller) == "2vxsx-fae") {
+      throw Error.reject("NotAuthorized");  //isNotAuthorized
+    };
     var listTop : [?(Text,Types.MemoryCardEnginePlayer)] = [];
     var stagesSize : Int = 0;
     for (V in state.memoryCardEngine.stages.vals()){
@@ -2286,9 +2331,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public shared({caller}) func memoryCardEngineListAll(gameId : Text, gameSlug : Text) : async Response<[Types.MemoryCardEnginePlayer]>{
-    // if(Principal.toText(caller) == "2vxsx-fae") {
-    //   return #err(#NotAuthorized);// isNotAuthorized
-    // };
+    if(Principal.toText(caller) == "2vxsx-fae") {
+      return #err(#NotAuthorized);// isNotAuthorized
+    };
     if(isAdmin(caller)) {
       var listTop : [Types.MemoryCardEnginePlayer] = [];
       for(V in state.memoryCardEngine.players.vals()) {
@@ -2303,9 +2348,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public shared({caller}) func memoryCardEngineCheckReward(id : Text) : async Response<?Types.MemoryCardEngineReward>{
-    // if(Principal.toText(caller) == "2vxsx-fae") {
-    //   return #err(#NotAuthorized);// isNotAuthorized
-    // };
+    if(Principal.toText(caller) == "2vxsx-fae") {
+      return #err(#NotAuthorized);// isNotAuthorized
+    };
     if(isAdmin(caller)) {
       #ok(state.memoryCardEngine.rewards.get(id));
     } else {
@@ -2318,9 +2363,9 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
     reward : Float, 
     uid : Principal
   ) : async Response<()>{
-    // if(Principal.toText(caller) == "2vxsx-fae") {
-    //   return #err(#NotAuthorized);// isNotAuthorized
-    // };
+    if(Principal.toText(caller) == "2vxsx-fae") {
+      return #err(#NotAuthorized);// isNotAuthorized
+    };
     if(isAdmin(caller)) {
       let rewardAmount : Nat64 = Int64.toNat64(Float.toInt64(reward * (10 ** 8)));
       switch (await refund(rewardAmount, uid)) {
