@@ -2076,8 +2076,8 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
   };
 
   public shared({caller}) func memoryCardEngineStartStage(gameId : Text, stageId : Text, playerId : ?Text, gameSlug : Text) : async Response<([?(Text, Types.MemoryCardEngineCard)], Text)> {
-    if(Principal.toText(caller) == "2vxsx-fae") {
-      return #err(#NotAuthorized);// isNotAuthorized
+    if (Principal.toText(caller) == "2vxsx-fae") {
+      throw Error.reject("NotAuthorized");  //isNotAuthorized
     };
 
     var stagesSize : Nat = 0;
@@ -2095,7 +2095,7 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
           gameId;
           gameSlug;
           history = [{
-            stageId;
+            stageId = stageId;
             selected = []; // clear
             turn = 0; // default
             timing = 0; //default
@@ -2130,7 +2130,31 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
             });
             switch (found) {
               case null {
-                return #err(#NotFound);
+                let newValue : Types.MemoryCardEngineGameProgress = {
+                  stageId = stageId;
+                  selected = [];
+                  turn = 0;
+                  timing = 0;
+                }; 
+
+                let replacePlayer : Types.MemoryCardEnginePlayer = {
+                  aId = oldData.aId;
+                  gameId = oldData.gameId;
+                  gameSlug = oldData.gameSlug;
+                  history = Array.append(oldData.history, [newValue]);
+                  createdAt = oldData.createdAt;
+                  updatedAt = Moment.now();
+                };
+                let _ = state.memoryCardEngine.players.replace(pid, replacePlayer);
+                if (Iter.size(Iter.fromArray(replacePlayer.history)) == stagesSize) {
+                  gamePlayAnalytics := {
+                    miniGamePlayCount = gamePlayAnalytics.miniGamePlayCount;
+                    miniGameCompletedCount = gamePlayAnalytics.miniGameCompletedCount + 1;
+                    questPlayCount = gamePlayAnalytics.questPlayCount;
+                    questCompletedCount = gamePlayAnalytics.questCompletedCount;
+                  };
+                };
+                return #ok((duplicateAndShuffleCards, pid));
               };
               case (?V) {
                 var newHistory : [Types.MemoryCardEngineGameProgress] = [];
@@ -2177,63 +2201,58 @@ shared({caller = owner}) actor class SustainationsDAO(ledgerId : ?Text) = this {
     };
   };
 
-  public shared({caller}) func memoryCardEngineCardPair(pairCard : (Types.MemoryCardEngineCard, Types.MemoryCardEngineCard), gameId : Text, stageId : Text, playerId : ?Text, gameSlug : Text) : async Response<()> {
+  public shared({caller}) func memoryCardEngineCardPair(pairCard : (Types.MemoryCardEngineCard, Types.MemoryCardEngineCard), gameId : Text, stageId : Text, playerId : Text, gameSlug : Text) : async Response<()> {
     if (Principal.toText(caller) == "2vxsx-fae") {
       throw Error.reject("NotAuthorized");  //isNotAuthorized
     };
-    switch (playerId) {
-      case null {
-        return #err(#NotFound);
-      };
-      case (?pid) {
-        switch (await memoryCardEngineGetPlayer(caller, gameId, gameSlug)) {
-          case (#err(error)) {
-            return #err(error);
-          };
-          case (#ok(K, oldData)) {
-            let found = 
-              Array.find<Types.MemoryCardEngineGameProgress>(oldData.history, func (h) : Bool {
-              Text.equal(stageId, h.stageId);
-            });
-            switch (found) {
-              case null {
-                return #err(#NotFound);
-              };
-              case (?V) {                
-                var newHistory : [Types.MemoryCardEngineGameProgress] = [];
 
-                for (value in oldData.history.vals()) {
-                  // kiem tra neu GameProgress co stageId = stageId dau vao thi thay doi GameProgress do, roi dua do mang newHistory
-                  if (value.stageId == stageId) {
-                    let newValue : Types.MemoryCardEngineGameProgress = {
-                      stageId = value.stageId;
-                      selected = Array.append(value.selected, [?pairCard]);
-                      turn = value.turn;
-                      timing = value.timing;
-                    };
-                    newHistory := Array.append<Types.MemoryCardEngineGameProgress>(newHistory, [newValue]);
-                  } else {
-                    // neu khong phai thi dua GameProgress do mang newHIstory
-                    newHistory := Array.append<Types.MemoryCardEngineGameProgress>(newHistory, [value]);
+    if (pairCard.0.stageId == stageId and pairCard.1.stageId == stageId) {
+        switch (state.memoryCardEngine.players.get(playerId)){
+        case null { return #err(#NotFound); };
+        case (?player) {
+          let found = Array.find<Types.MemoryCardEngineGameProgress>(player.history, func (h) : Bool {
+            Text.equal(stageId, h.stageId);
+          });
+          switch (found) {
+            case null {
+              return #err(#NotFound);
+            };
+            case (?V) {                
+              var newHistory : [Types.MemoryCardEngineGameProgress] = [];
+
+              for (value in player.history.vals()) {
+                // kiem tra neu GameProgress co stageId = stageId dau vao thi thay doi GameProgress do, roi dua do mang newHistory
+                if (value.stageId == stageId) {
+                  let newValue : Types.MemoryCardEngineGameProgress = {
+                    stageId = value.stageId;
+                    selected = Array.append(value.selected, [?pairCard]);
+                    turn = value.turn;
+                    timing = value.timing;
                   };
+                  newHistory := Array.append<Types.MemoryCardEngineGameProgress>(newHistory, [newValue]);
+                } else {
+                  // neu khong phai thi dua GameProgress do mang newHIstory
+                  newHistory := Array.append<Types.MemoryCardEngineGameProgress>(newHistory, [value]);
                 };
-                
-                let replacePlayer : Types.MemoryCardEnginePlayer = {
-                  aId = oldData.aId;
-                  gameId = oldData.gameId;
-                  gameSlug = oldData.gameSlug;
-                  history = newHistory;
-                  createdAt = oldData.createdAt;
-                  updatedAt = Moment.now();
-                };
-                let _ = state.memoryCardEngine.players.replace(pid, replacePlayer);
-                return #ok(());
               };
+              
+              let replacePlayer : Types.MemoryCardEnginePlayer = {
+                aId = player.aId;
+                gameId = player.gameId;
+                gameSlug = player.gameSlug;
+                history = newHistory;
+                createdAt = player.createdAt;
+                updatedAt = Moment.now();
+              };
+              let _ = state.memoryCardEngine.players.replace(playerId, replacePlayer);
+              return #ok(());
             };
           };
         };
       };
-    };
+    } else {
+      return #err(#InvalidData);
+    };    
   };
 
   public shared({caller}) func memoryCardEngineCompletedStage(selected : [?(Types.MemoryCardEngineCard, Types.MemoryCardEngineCard)], stageId : Text, playerId : Text) : async Response<()> {
